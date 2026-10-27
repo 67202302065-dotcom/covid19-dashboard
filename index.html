@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดเฝ้าระวังการระบาดโควิด-19 | รายงานทางระบาดวิทยา</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        #map { height: 480px; width: 100%; border-radius: 0.75rem; z-index: 1; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-rose-600 rounded-lg text-white">
+                    <i class="fa-solid fa-virus-covid text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">แดชบอร์ดเฝ้าระวังการระบาดโรคโควิด-19</h1>
+                    <p class="text-slate-400 text-sm">การวิเคราะห์ทางระบาดวิทยา (ข้อมูลระหว่าง 12 เม.ย. – 1 พ.ค. 2565)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-lg text-xs font-mono border border-slate-700">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>สถานะระบบ: รายงานฉบับสมบูรณ์ (N = 356,612)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- KPI Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ผู้ติดเชื้อสะสมทั้งหมด</p>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mt-2" id="kpiTotal">356,612 <span class="text-base font-normal text-slate-500">ราย</span></h3>
+                    </div>
+                    <div class="p-3 bg-rose-100 text-rose-600 rounded-lg">
+                        <i class="fa-solid fa-users text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4"><i class="fa-solid fa-calendar-day mr-1"></i> รวม 20 วันของการรายงาน</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ผู้ติดเชื้อสูงสุดต่อวัน</p>
+                        <h3 class="text-3xl font-extrabold text-amber-600 mt-2">24,134 <span class="text-base font-normal text-slate-500">ราย</span></h3>
+                    </div>
+                    <div class="p-3 bg-amber-100 text-amber-600 rounded-lg">
+                        <i class="fa-solid fa-chart-line text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-500"></i> ยอดสูงสุดวันที่ 14 เม.ย. 2565</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">พื้นที่ระบาดสูงสุด</p>
+                        <h3 class="text-2xl font-extrabold text-indigo-600 mt-2">กรุงเทพฯ</h3>
+                    </div>
+                    <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+                        <i class="fa-solid fa-city text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4"><i class="fa-solid fa-location-dot mr-1"></i> 57,632 ราย (16.2% ของประเทศ)</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">กลุ่มเสี่ยงสูง (60+ ปี)</p>
+                        <h3 class="text-3xl font-extrabold text-purple-600 mt-2">64,612 <span class="text-base font-normal text-slate-500">ราย</span></h3>
+                    </div>
+                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                        <i class="fa-solid fa-person-cane text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4"><i class="fa-solid fa-shield-virus mr-1 text-purple-500"></i> คิดเป็น 19.9% ของผู้ติดเชื้อทราบอายุ</p>
+            </div>
+        </section>
+
+        <!-- Spatial Map & Top Provinces -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Map Column (2 Cols) -->
+            <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-rose-600"></i>
+                        แผนที่แสดงการกระจายตัวของผู้ติดเชื้อรายจังหวัด (Geographic Map)
+                    </h2>
+                    <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded">ขนาดวงกลมแปรตามจำนวนผู้ติดเชื้อ</span>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- Top Provinces Column (1 Col) -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-amber-500"></i>
+                        10 จังหวัดที่มีผู้ติดเชื้อสูงสุด
+                    </h2>
+                    <div class="space-y-3" id="top-provinces-list">
+                        <!-- Dynamic List via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Daily Trend Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-area text-blue-600"></i>
+                    แนวโน้มจำนวนผู้ติดเชื้อรายวัน (Epidemic Curve)
+                </h2>
+                <div class="h-72">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Demographics Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-emerald-600"></i>
+                    สัดส่วนผู้ติดเชื้อจำแนกตามกลุ่มอายุ
+                </h2>
+                <div class="h-72">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Factors & Gender -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-biohazard text-orange-600"></i>
+                    ปัจจัยเสี่ยงสำคัญในการติดเชื้อ (Risk Factors)
+                </h2>
+                <div class="h-64">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-venus-mars text-purple-600"></i>
+                    สัดส่วนตามเพศ (Gender Distribution)
+                </h2>
+                <div class="h-64 flex justify-center items-center">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Public Health Policy Recommendations -->
+        <section class="bg-slate-900 text-white p-6 rounded-xl shadow-md space-y-4">
+            <h2 class="text-xl font-bold flex items-center gap-2 text-rose-400">
+                <i class="fa-solid fa-user-doctor"></i>
+                ข้อเสนอแนะเชิงนโยบายสาธารณสุข (Public Health Recommendations)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-300">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-white mb-1"><i class="fa-solid fa-bullseye text-rose-400 mr-2"></i>การเร่งรัดฉีดวัคซีนกลุ่ม 608</h3>
+                    <p>ผู้สูงอายุ (60+ ปี) ติดเชื้อถึง 19.9% ควรเร่งฉีดวัคซีนเข็มกระตุ้นในกลุ่มผู้สูงอายุและผู้ป่วยโรคเรื้อรังเพื่อลดอัตราการป่วยหนักและเสียชีวิต</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-white mb-1"><i class="fa-solid fa-house-chimney-medical text-amber-400 mr-2"></i>มาตรการในครัวเรือน & สถานที่ทำงาน</h3>
+                    <p>สถิติชี้ว่าการติดเชื้อจากการสัมผัสผู้ป่วยใกล้ชิดมีสัดส่วนสูงที่สุด เน้นย้ำมาตรการ DMHTT เมื่อมีผู้ติดเชื้อในบ้านหรือออฟฟิศ</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-white mb-1"><i class="fa-solid fa-map-location-dot text-emerald-400 mr-2"></i>เฝ้าระวังพื้นที่จุดเข้มข้น</h3>
+                    <p>กรุงเทพฯ และจังหวัดใหญ่ (ชลบุรี, ขอนแก่น, สมุทรปราการ) เป็นศูนย์กลางการระบาด ต้องจัดสรรเวชภัณฑ์ ยา และเตียงรองรับอย่างเหมาะสม</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-500 py-6 text-center text-xs border-t border-slate-800">
+        <p>จัดทำโดย นักวิชาการสาธารณสุข | พัฒนาด้วย Leaflet.js, Chart.js & Tailwind CSS | ข้อมูล: ชุดข้อมูลการระบาดโควิด-19 ปี 2565</p>
+    </footer>
+
+    <!-- JavaScript Data & Render Scripts -->
+    <script>
+        // Data derived from dataset final69_covid65
+        const dailyData = {
+            '12 เม.ย.': 19982, '13 เม.ย.': 23015, '14 เม.ย.': 24134, '15 เม.ย.': 20289,
+            '16 เม.ย.': 18892, '17 เม.ย.': 17775, '18 เม.ย.': 16994, '19 เม.ย.': 16891,
+            '20 เม.ย.': 20455, '21 เม.ย.': 21931, '22 เม.ย.': 21808, '23 เม.ย.': 20052,
+            '24 เม.ย.': 17784, '25 เม.ย.': 14994, '26 เม.ย.': 13816, '27 เม.ย.': 14887,
+            '28 เม.ย.': 14437, '29 เม.ย.': 14053, '30 เม.ย.': 12888, '01 พ.ค.': 11535
+        };
+
+        const topProvinces = [
+            { name: "กรุงเทพมหานคร", cases: 57632, lat: 13.7563, lng: 100.5018 },
+            { name: "ชลบุรี", cases: 12941, lat: 13.3611, lng: 100.9847 },
+            { name: "ขอนแก่น", cases: 12821, lat: 16.4419, lng: 102.8360 },
+            { name: "สมุทรปราการ", cases: 11826, lat: 13.5991, lng: 100.5968 },
+            { name: "นนทบุรี", cases: 10641, lat: 13.8591, lng: 100.5217 },
+            { name: "ศรีสะเกษ", cases: 8910, lat: 15.1186, lng: 104.3220 },
+            { name: "นครปฐม", cases: 8864, lat: 13.8196, lng: 100.0443 },
+            { name: "ร้อยเอ็ด", cases: 8163, lat: 16.0538, lng: 103.6520 },
+            { name: "ฉะเชิงเทรา", cases: 7060, lat: 13.6904, lng: 101.0779 },
+            { name: "อุบลราชธานี", cases: 7005, lat: 15.2448, lng: 104.8473 },
+            { name: "บุรีรัมย์", cases: 6850, lat: 14.9951, lng: 103.1223 },
+            { name: "สงขลา", cases: 6520, lat: 7.1898, lng: 100.5954 },
+            { name: "เชียงใหม่", cases: 6100, lat: 18.7883, lng: 98.9853 },
+            { name: "นครราชสีมา", cases: 5900, lat: 14.9799, lng: 102.0978 },
+            { name: "ระยอง", cases: 5400, lat: 12.6814, lng: 101.2816 }
+        ];
+
+        const ageData = {
+            '0-12 ปี (เด็ก)': 37812,
+            '13-18 ปี (วัยรุ่น)': 11517,
+            '19-35 ปี (วัยทำงานต้น)': 90963,
+            '36-60 ปี (วัยผู้ใหญ่)': 120417,
+            '60+ ปี (ผู้สูงอายุ)': 64612
+        };
+
+        const riskData = {
+            'สัมผัสใกล้ชิดผู้ป่วยยืนยัน': 123739,
+            'บุคลากรทางการแพทย์': 5622,
+            'สถานที่ทำงาน': 3815,
+            'ไปสถานที่ชุมชน/ตลาด': 2448,
+            'ตรวจก่อนทำหัตถการ': 1928,
+            'ปอดอักเสบ (Pneumonia)': 1382,
+            'ค้นหาเชิงรุกในชุมชน': 1329
+        };
+
+        // Initialize Leaflet Map
+        const map = L.map('map').setView([13.736717, 100.523186], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add circles to Map
+        topProvinces.forEach(p => {
+            const radius = Math.sqrt(p.cases) * 350;
+            const circle = L.circle([p.lat, p.lng], {
+                color: '#e11d48',
+                fillColor: '#f43f5e',
+                fillOpacity: 0.5,
+                radius: radius
+            }).addTo(map);
+
+            circle.bindPopup(`
+                <div class="text-sm font-sans">
+                    <strong class="text-base text-slate-900">${p.name}</strong><br/>
+                    <span class="text-rose-600 font-bold">ผู้ติดเชื้อ: ${p.cases.toLocaleString()} ราย</span>
+                </div>
+            `);
+        });
+
+        // Render Top Provinces List
+        const listContainer = document.getElementById('top-provinces-list');
+        const maxCases = topProvinces[0].cases;
+        topProvinces.slice(0, 10).forEach((p, index) => {
+            const percentage = ((p.cases / maxCases) * 100).toFixed(0);
+            listContainer.innerHTML += `
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-700">${index + 1}. ${p.name}</span>
+                        <span class="text-rose-600">${p.cases.toLocaleString()} ราย</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-rose-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Render Daily Chart
+        new Chart(document.getElementById('dailyChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(dailyData),
+                datasets: [{
+                    label: 'จำนวนผู้ติดเชื้อ (ราย)',
+                    data: Object.values(dailyData),
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: false } }
+            }
+        });
+
+        // Render Age Chart
+        new Chart(document.getElementById('ageChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(ageData),
+                datasets: [{
+                    label: 'จำนวนผู้ติดเชื้อ (ราย)',
+                    data: Object.values(ageData),
+                    backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#fbbf24', '#f87171']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Render Risk Chart
+        new Chart(document.getElementById('riskChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(riskData),
+                datasets: [{
+                    label: 'จำนวนผู้ติดเชื้อ (ราย)',
+                    data: Object.values(riskData),
+                    backgroundColor: '#f97316'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Render Gender Chart
+        new Chart(document.getElementById('genderChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['เพศหญิง (57%)', 'เพศชาย (38%)', 'ไม่ระบุ (5%)'],
+                datasets: [{
+                    data: [203340, 135617, 17655],
+                    backgroundColor: ['#ec4899', '#3b82f6', '#cbd5e1']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    </script>
+</body>
+</html>
